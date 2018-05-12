@@ -5,23 +5,33 @@ import java.util.*;
 import static java.lang.Math.min;
 
 public class App {
-    private static final int C = 3;
-    private static final int P = 4;
+    private static final int C = 10; // 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 15 10
+    private static final int P = 7;
     private static Service service = new Service();
 
     public static void main(String[] args) {
         Scanner reader = new Scanner(System.in);
-        System.out.println("Enter a prices line");
+
+        System.out.println("random? y/n");
         Integer[][] prices = new Integer[C][P];
         Price[] goodPrices = new Price[C * P];
-        for (int i = 0; i < C; i++) {
-            for (int j = 0; j < P; j++) {
-                prices[i][j] = reader.nextInt();
-                Price price = new Price();
-                price.cost = prices[i][j];
-                price.consumer = i;
-                price.producer = j;
-                goodPrices[i * P + j] = price;
+        if (reader.next().equals("y")) {
+            Random randomizer = new Random();
+            for (int i = 0; i < C; i++) {
+                for (int j = 0; j < P; j++) {
+                    prices[i][j] = randomizer.nextInt(14)+1;
+                    Price price = new Price(prices[i][j], i, j);
+                    goodPrices[i * P + j] = price;
+                }
+            }
+        } else {
+            System.out.println("Enter a prices line");
+            for (int i = 0; i < C; i++) {
+                for (int j = 0; j < P; j++) {
+                    prices[i][j] = reader.nextInt();
+                    Price price = new Price(prices[i][j], i, j);
+                    goodPrices[i * P + j] = price;
+                }
             }
         }
         Arrays.sort(goodPrices, new SortByCost());
@@ -36,6 +46,13 @@ public class App {
             producers[i] = reader.nextInt();
         }
         reader.close();
+
+        for (int i = 0; i < C; i++) {
+            for (int j = 0; j < P; j++) {
+                System.out.print(prices[i][j] + "   | ");
+            }
+            System.out.println();
+        }
 
         Map<String, Vertex> basePointsPr = new HashMap<>();
         Map<String, Vertex> basePointsCon = new HashMap<>();
@@ -85,23 +102,6 @@ public class App {
             service.search(v, v);
         }
 
-        for (int i = 0; i < C; i++) {
-            for (int j = 0; j < P; j++) {
-                System.out.print(prices[i][j] + "   | ");
-            }
-            System.out.println();
-        }
-        for (Graph g : graphs) {
-            for (Vertex p : g.producers) {
-                System.out.print("p   " + p.position);
-            }
-            System.out.println();
-            for (Vertex c : g.consumers) {
-                System.out.print("c   " + c.position);
-            }
-            System.out.println("   -------    ");
-        }
-
         index = 0;
         while (basePointsCount < P + C - 1) {
             if ((prices[goodPrices[index].consumer][goodPrices[index].producer] == null) ||
@@ -126,6 +126,7 @@ public class App {
                     if (prices[c2.position][p1.position] > 0)
                         prices[c2.position][p1.position] = null;
                 }
+
             prices[goodPrices[index].consumer][goodPrices[index].producer] = 0;
             graph1.concatenation(graph1, graph2);
             index++;
@@ -134,20 +135,21 @@ public class App {
 
         for (int i = 0; i < C; i++) {
             for (int j = 0; j < P; j++) {
-                System.out.print(prices[i][j] + "   | ");
+                String temp = "-";
+                if (prices[i][j] != null) {
+                    if (prices[i][j] < 0) {
+                        temp = ((Integer) (0 - prices[i][j])).toString();
+                    }
+                    if (prices[i][j] == 0) {
+                        temp = ((Integer) (prices[i][j])).toString();
+                    }
+                }
+
+
+                System.out.print(temp + "   | ");
             }
             System.out.println();
-        }
-        for (Graph g : graphs) {
-            for (Vertex p : g.producers) {
-                System.out.print("p   " + p.position);
-            }
-            System.out.println();
-            for (Vertex c : g.consumers) {
-                System.out.print("c   " + c.position);
-            }
-            System.out.println("   -------    ");
         }
     }
-
 }
+
