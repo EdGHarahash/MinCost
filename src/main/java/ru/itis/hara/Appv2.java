@@ -1,6 +1,7 @@
 package ru.itis.hara;
 
 
+import javax.print.attribute.HashDocAttributeSet;
 import java.util.*;
 
 import static java.lang.Math.min;
@@ -14,25 +15,25 @@ public class Appv2 {
         Scanner reader = new Scanner(System.in);
 
         System.out.println("random? y/n");
-        Map<Integer, Map<Integer, Integer>> consumersMap = new HashMap<>();
-        Map<Integer, Map<Integer, Integer>> producersMap = new HashMap<>();
+        Map<Integer, Map<Integer, Hand>> consumersMap = new HashMap<>();
+        Map<Integer, Map<Integer, Hand>> producersMap = new HashMap<>();
         Price[] goodPrices = new Price[C * P];
         if (reader.next().equals("y")) {
             Random randomizer = new Random();
             for (int i = 0; i < P; i++) {
-                producersMap.put(i, new HashMap<Integer, Integer>());
+                producersMap.put(i, new HashMap<Integer, Hand>());
             }
             for (int i = 0; i < C; i++) {
-                consumersMap.put(i, new HashMap<Integer, Integer>());
+                consumersMap.put(i, new HashMap<Integer, Hand>());
                 for (int j = 0; j < P; j++) {
                     Integer price = randomizer.nextInt(14) + 1;
-                    consumersMap.get(i).put(-1, 0);
-                    consumersMap.get(i).put(-2, 0);
-                    consumersMap.get(i).put(j, price);
-                    Integer price2 = price;
-                    producersMap.get(j).put(-1, 0);
-                    producersMap.get(j).put(-2, 0);
-                    producersMap.get(j).put(i, price2);
+                    consumersMap.get(i).put(-1, new Hand(true,0));
+                    consumersMap.get(i).put(-2, new Hand(true,0));
+                    Hand hand = new Hand(price);
+                    consumersMap.get(i).put(j, hand);
+                    producersMap.get(j).put(-1, new Hand(true,0));
+                    producersMap.get(j).put(-2, new Hand(true,0));
+                    producersMap.get(j).put(i, hand);
                 }
             }
         } else {
@@ -50,7 +51,7 @@ public class Appv2 {
         Set<Price> zeros = new HashSet<>();
         System.out.println("Start data:");
         for (int i = 0; i < C; i++) {
-            Map<Integer, Integer> temp = consumersMap.get(i);
+            Map<Integer, Hand> temp = consumersMap.get(i);
             for (int j = 0; j<P; j++) {
                 System.out.print(temp.get(j)+" | ");
             }
@@ -74,7 +75,7 @@ public class Appv2 {
         System.out.println();
 
         for (int i = 0; i < C; i++) {
-            Map<Integer, Integer> temp = consumersMap.get(i);
+            Map<Integer, Hand> temp = consumersMap.get(i);
             for (int j = 0; j<P; j++) {
                 System.out.print(temp.get(j)+" | ");
             }
@@ -102,12 +103,15 @@ public class Appv2 {
         System.out.println();
 
         for (int i = 0; i < C; i++) {
-            Map<Integer, Integer> temp = consumersMap.get(i);
             for (int j = 0; j<P; j++) {
-                System.out.print(temp.get(j)+" | ");
+                System.out.print(producersMap.get(j).get(i)+" | ");
             }
             System.out.println();
         }
+        for (int j = 0; j<P; j++) {
+            System.out.print("constant: " + producersMap.get(j).get(-1)+"  zeros: "+  producersMap.get(j).get(-2));
+        }
+        System.out.println();
 //        Arrays.sort(goodPrices, new SortByCost());
 //        System.out.println("Enter a consumers values");
 //        int[] consumers = new int[C];

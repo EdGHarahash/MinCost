@@ -22,35 +22,34 @@ public class Service {
         }
     }
 
-    public HashSet<Integer> improve(Map<Integer, Integer> map) {
+    public HashSet<Integer> improve(Map<Integer, Hand> map) {
         HashSet<Integer> newZeros = new HashSet<>();
-        if(map.get(-2)!=0){
+        if(map.get(-2).index!=0){
             return newZeros;
         }
         int min = Integer.MAX_VALUE;
-        for (Integer price : map.values()
+        for (Hand price : map.values()
                 ) {
-            if ((price < min) && (price!=0)) {
-                min = price;
+            if ((price.index < min)&&(!price.stat)) {
+                min = price.index;
             }
         }
         int zeroCount = 0;
-        for(Map.Entry<Integer, Integer> entry : map.entrySet()) {
+        for(Map.Entry<Integer, Hand> entry : map.entrySet()) {
             Integer key = entry.getKey();
-            Integer value = entry.getValue();
-            if(key < 0){
+            Hand value = entry.getValue();
+            if(value.stat){
                 continue;
             }
-            value =  value - min;
-            map.put(key,value);
-            if (value == 0){
+            value.index =  value.index - min;
+            if (value.index == 0){
                 zeroCount++;
                 newZeros.add(key);
             }
         }
 
-        map.put(-1,map.get(-1)+min);
-        map.put(-2, map.get(-1)+zeroCount);
+        map.get(-1).index += min;
+        map.get(-2).index += zeroCount;
         return newZeros;
     }
 }
