@@ -1,7 +1,5 @@
 package ru.itis.hara;
 
-
-import javax.print.attribute.HashDocAttributeSet;
 import java.util.*;
 
 import static java.lang.Math.min;
@@ -17,7 +15,6 @@ public class Appv2 {
         System.out.println("random? y/n");
         Map<Integer, Map<Integer, Hand>> consumersMap = new HashMap<>();
         Map<Integer, Map<Integer, Hand>> producersMap = new HashMap<>();
-        Price[] goodPrices = new Price[C * P];
         if (reader.next().equals("y")) {
             Random randomizer = new Random();
             for (int i = 0; i < P; i++) {
@@ -127,6 +124,15 @@ public class Appv2 {
         }
         reader.close();
 
+        service.firstImprove(consumersMap, C, producersMap, P);
+
+        for (int i = 0; i < C; i++) {
+            for (int j = 0; j < P; j++) {
+                System.out.print(producersMap.get(j).get(-3) + " | ");
+            }
+            System.out.println();
+        }
+
         Map<String, Vertex> basePointsPr = new HashMap<>();
         Map<String, Vertex> basePointsCon = new HashMap<>();
         Set<Price> basePoints = new HashSet<>();
@@ -135,37 +141,67 @@ public class Appv2 {
         int emptyStockCount = 0;
         int index = 0;
         while (emptyStockCount < (C + P)) {
-            int max = 0;
+            Set<Price> badZeros = new HashSet<>();
+            int max = -1;
             Price price = new Price(0,0,0);
             for (Price p:zeros
                  ) {
                 int innerMax = 0;
+                if (!consumersMap.containsKey(p.consumer) || !producersMap.containsKey(p.producer) ||
+                        !consumersMap.get(p.consumer).containsKey(p.producer) ||
+                        !producersMap.get(p.producer).containsKey(p.consumer)){
+                    badZeros.add(p);
+                    System.out.println("add to bad zeros" + zeros.size());
+                    continue;
+                }
                 if (consumersMap.get(p.consumer).get(-2).index < 2){
                     innerMax += consumersMap.get(p.consumer).get(-3).index;
                 }
-                if (producersMap.get(p.consumer).get(-2).index < 2){
-                    innerMax += producersMap.get(p.consumer).get(-3).index;
+                if (producersMap.get(p.producer).get(-2).index < 2){
+                    innerMax += producersMap.get(p.producer).get(-3).index;
                 }
                 if (innerMax > max){
+                    max = innerMax;
                     price = p;
                 }
             }
+            if (max == -1){return;}
+            System.out.println("c:  "+price.consumer+"  p: "+price.producer+"   m: "+max+" b: "+emptyStockCount);
+            zeros.removeAll(badZeros);
+            zeros.remove(price);
             if ((consumers[price.consumer] != 0) && (producers[price.producer] != 0)) {
                 int basePointValue = min(consumers[price.consumer], producers[price.producer]);
                 producers[price.producer] -= basePointValue;
                 consumers[price.consumer] -= basePointValue;
                 if (producers[price.producer] == 0) {
                     emptyStockCount++;
-                    service.zeroAndMinCheck(consumersMap,producersMap.get(price.producer));
+                    zeros.addAll(service.zeroAndMinCheck(consumersMap,producersMap.get(price.producer),
+                            price.producer,false));
                     producersMap.remove(price.producer);
+                    System.out.println("remove producer");
                 }
 
                 if (consumers[price.consumer] == 0) {
                     emptyStockCount++;
-                    service.zeroAndMinCheck(producersMap,consumersMap.get(price.consumer));
+                    zeros.addAll(service.zeroAndMinCheck(producersMap,consumersMap.get(price.consumer),
+                            price.consumer, true));
                     consumersMap.remove(price.consumer);
+                    System.out.println("remove consumer");
                 }
 
+                for (int i = 0; i < C; i++) {
+                    if (consumersMap.containsKey(i)) {
+                        System.out.print("const:  " + consumersMap.get(i).get(-1));
+                        System.out.print("zeros:  "+consumersMap.get(i).get(-2));
+                        System.out.print("min:    "+consumersMap.get(i).get(-3));
+                    }
+                    for (int j = 0; j < P; j++) {
+                        if(producersMap.containsKey(j) && producersMap.get(j).containsKey(i)
+                                &&consumersMap.containsKey(i) && consumersMap.get(i).containsKey(j))
+                            System.out.print(" j: "+j+"i: "+i +"  "+producersMap.get(j).get(i) + " | ");
+                    }
+                    System.out.println();
+                }
 
                 basePoints.add(new Price(basePointValue, price.consumer, price.producer));
 
@@ -181,26 +217,44 @@ public class Appv2 {
                 basePointsPr.get("p" + price.producer).addVertex(basePointsCon.get("c" + price.consumer));
                 basePointsCount++;
             }
-            index++;
         }
-//
-//        for (Vertex v : basePointsPr.values()) {
-//            if (v.hasGraph()) {
-//                continue;
-//            }
-//            v.graph = new Graph();
-//            service.search(v, v);
-//        }
-//
+
+        for (Vertex v : basePointsPr.values()) {
+            if (v.hasGraph()) {
+                continue;
+            }
+            v.graph = new Graph();
+            service.search(v, v);
+        }
+
+        System.out.println("grafh pass");
 //        index = 0;
 //        while (basePointsCount < P + C - 1) {
-//            if ((prices[goodPrices[index].consumer][goodPrices[index].producer] == null) ||
-//                    (prices[goodPrices[index].consumer][goodPrices[index].producer] < 0)) {
-//                index++;
-//                continue;
+//            int max = 0;
+//            Price price = new Price(0,0,0);
+//            for (Price p:zeros
+//                    ) {
+//                int innerMax = 0;
+//                if (!consumersMap.containsKey(p.consumer) || !producersMap.containsKey(p.producer) ||
+//                        !consumersMap.get(p.consumer).containsKey(p.producer) ||
+//                        !producersMap.get(p.producer).containsKey(p.consumer)){
+//                    zeros.remove(p);
+//                    continue;
+//                }
+//                if (consumersMap.get(p.consumer).get(-2).index < 2){
+//                    innerMax += consumersMap.get(p.consumer).get(-3).index;
+//                }
+//                if (producersMap.get(p.producer).get(-2).index < 2){
+//                    innerMax += producersMap.get(p.producer).get(-3).index;
+//                }
+//                if (innerMax > max){
+//                    price = p;
+//                }
 //            }
-//            Graph graph1 = basePointsCon.get("c" + goodPrices[index].consumer).graph.main;
-//            Graph graph2 = basePointsPr.get("p" + goodPrices[index].producer).graph.main;
+//            zeros.remove(price);
+//
+//            Graph graph1 = basePointsCon.get("c" + price.consumer).graph.main;
+//            Graph graph2 = basePointsPr.get("p" + price.producer).graph.main;
 //            if (graph1 == graph2) {
 //                index++;
 //                continue;
@@ -208,21 +262,20 @@ public class Appv2 {
 //
 //            for (Vertex c1 : graph1.consumers)
 //                for (Vertex p2 : graph2.producers) {
-//                    if (prices[c1.position][p2.position] > 0)
-//                        prices[c1.position][p2.position] = null;
+//                    if(consumersMap.containsKey(c1)){consumersMap.get(c1).remove(p2);}
+//                    if(producersMap.containsKey(p2)){producersMap.get(p2).remove(c1);}
 //                }
 //            for (Vertex c2 : graph2.consumers)
 //                for (Vertex p1 : graph1.producers) {
-//                    if (prices[c2.position][p1.position] > 0)
-//                        prices[c2.position][p1.position] = null;
+//                    consumersMap.get(c2).remove(p1);
+//                    producersMap.get(p1).remove(c2);
 //                }
-//
-//            prices[goodPrices[index].consumer][goodPrices[index].producer] = 0;
+//            basePoints.add(new Price(0, price.consumer, price.producer));
 //            graph1.concatenation(graph1, graph2);
 //            index++;
 //            basePointsCount++;
 //        }
-//
+
 //        for (int i = 0; i < C; i++) {
 //            for (int j = 0; j < P; j++) {
 //                String temp = "-";

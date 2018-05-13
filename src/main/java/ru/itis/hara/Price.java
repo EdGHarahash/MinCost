@@ -7,6 +7,16 @@ public class Price {
     public int consumer;
     public int producer;
 
+    public Price(int consumer, int producer, boolean reverse) {
+        if(reverse) {
+            this.consumer = producer;
+            this.producer = consumer;
+        } else {
+            this.consumer = consumer;
+            this.producer = producer;
+        }
+    }
+
     public Price(int cost, int consumer, int producer) {
         this.cost = cost;
         this.consumer = consumer;
