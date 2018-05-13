@@ -26,13 +26,15 @@ public class Appv2 {
             for (int i = 0; i < C; i++) {
                 consumersMap.put(i, new HashMap<Integer, Hand>());
                 for (int j = 0; j < P; j++) {
-                    Integer price = randomizer.nextInt(14) + 1;
-                    consumersMap.get(i).put(-1, new Hand(true,0));
-                    consumersMap.get(i).put(-2, new Hand(true,0));
+                    Integer price = randomizer.nextInt(19) + 1;
+                    consumersMap.get(i).put(-1, new Hand(true, 0));
+                    consumersMap.get(i).put(-2, new Hand(true, 0));
+                    consumersMap.get(i).put(-3, new Hand(true, 0));
                     Hand hand = new Hand(price);
                     consumersMap.get(i).put(j, hand);
-                    producersMap.get(j).put(-1, new Hand(true,0));
-                    producersMap.get(j).put(-2, new Hand(true,0));
+                    producersMap.get(j).put(-1, new Hand(true, 0));
+                    producersMap.get(j).put(-2, new Hand(true, 0));
+                    producersMap.get(j).put(-3, new Hand(true, 0));
                     producersMap.get(j).put(i, hand);
                 }
             }
@@ -52,16 +54,16 @@ public class Appv2 {
         System.out.println("Start data:");
         for (int i = 0; i < C; i++) {
             Map<Integer, Hand> temp = consumersMap.get(i);
-            for (int j = 0; j<P; j++) {
-                System.out.print(temp.get(j)+" | ");
+            for (int j = 0; j < P; j++) {
+                System.out.print(temp.get(j) + " | ");
             }
             System.out.println();
         }
         System.out.println();
 
         for (int i = 0; i < C; i++) {
-            for (int j = 0; j<P; j++) {
-                System.out.print(producersMap.get(j).get(i)+" | ");
+            for (int j = 0; j < P; j++) {
+                System.out.print(producersMap.get(j).get(i) + " | ");
             }
             System.out.println();
         }
@@ -70,106 +72,117 @@ public class Appv2 {
         for (int i = 0; i < C; i++) {
             for (Integer index : service.improve(consumersMap.get(i))) {
                 zeros.add(new Price(0, i, index));
+                producersMap.get(index).get(-2).index += 1;
             }
         }
         System.out.println();
 
         for (int i = 0; i < C; i++) {
             Map<Integer, Hand> temp = consumersMap.get(i);
-            for (int j = 0; j<P; j++) {
-                System.out.print(temp.get(j)+" | ");
+            for (int j = 0; j < P; j++) {
+                System.out.print(temp.get(j) + " | ");
             }
-            System.out.print("constant: " + temp.get(-1) + "  zeros: "+ temp.get(-2));
+            System.out.print("constant: " + temp.get(-1) + "  zeros: " + temp.get(-2));
             System.out.println();
         }
         System.out.println();
 
         for (int i = 0; i < C; i++) {
-            for (int j = 0; j<P; j++) {
-                System.out.print(producersMap.get(j).get(i)+" | ");
+            for (int j = 0; j < P; j++) {
+                System.out.print(producersMap.get(j).get(i) + " | ");
             }
             System.out.println();
         }
-        for (int j = 0; j<P; j++) {
-            System.out.print("constant: " + producersMap.get(j).get(-1)+"  zeros: "+  producersMap.get(j).get(-2));
+        for (int j = 0; j < P; j++) {
+            System.out.print("constant: " + producersMap.get(j).get(-1) + "  zeros: " + producersMap.get(j).get(-2));
         }
         System.out.println();
 
         for (int i = 0; i < P; i++) {
             for (Integer index : service.improve(producersMap.get(i))) {
-                zeros.add(new Price(0, i, index));
+                zeros.add(new Price(0, index, i));
             }
         }
         System.out.println();
 
         for (int i = 0; i < C; i++) {
-            for (int j = 0; j<P; j++) {
-                System.out.print(producersMap.get(j).get(i)+" | ");
+            for (int j = 0; j < P; j++) {
+                System.out.print(producersMap.get(j).get(i) + " | ");
             }
             System.out.println();
         }
-        for (int j = 0; j<P; j++) {
-            System.out.print("constant: " + producersMap.get(j).get(-1)+"  zeros: "+  producersMap.get(j).get(-2));
+        for (int j = 0; j < P; j++) {
+            System.out.print("constant: " + producersMap.get(j).get(-1) + "  zeros: " + producersMap.get(j).get(-2));
         }
         System.out.println();
-//        Arrays.sort(goodPrices, new SortByCost());
-//        System.out.println("Enter a consumers values");
-//        int[] consumers = new int[C];
-//        for (int i = 0; i < C; i++) {
-//            consumers[i] = reader.nextInt();
-//        }
-//        System.out.println("Enter a producers values");
-//        int[] producers = new int[P];
-//        for (int i = 0; i < P; i++) {
-//            producers[i] = reader.nextInt();
-//        }
-//        reader.close();
-//
-//        for (int i = 0; i < C; i++) {
-//            for (int j = 0; j < P; j++) {
-//                System.out.print(consumersMap.get(i).get(j) + "   | ");
-//            }
-//            System.out.println();
-//        }
-//
-//
-//        Map<String, Vertex> basePointsPr = new HashMap<>();
-//        Map<String, Vertex> basePointsCon = new HashMap<>();
+        System.out.println("Enter a consumers values");
+        int[] consumers = new int[C];
+        for (int i = 0; i < C; i++) {
+            consumers[i] = reader.nextInt();
+        }
+        System.out.println("Enter a producers values");
+        int[] producers = new int[P];
+        for (int i = 0; i < P; i++) {
+            producers[i] = reader.nextInt();
+        }
+        reader.close();
 
-//        int basePointsCount = 0;
-//        int emptyStockCount = 0;
-//        int index = 0;
-//        while (emptyStockCount < (C + P)) {
-//            Price price = goodPrices[index];
-//            if ((consumers[price.consumer] != 0) && (producers[price.producer] != 0)) {
-//                int basePointValue = min(consumers[price.consumer], producers[price.producer]);
-//                producers[price.producer] -= basePointValue;
-//                consumers[price.consumer] -= basePointValue;
-//                if (producers[price.producer] == 0) {
-//                    emptyStockCount++;
-//                }
-//
-//                if (consumers[price.consumer] == 0) {
-//                    emptyStockCount++;
-//                }
-//
-//
-//                prices[price.consumer][price.producer] = -basePointValue;
-//
-//                if (!basePointsCon.containsKey("c" + price.consumer)) {
-//                    basePointsCon.put("c" + price.consumer, new Vertex(price.consumer));
-//                }
-//
-//                if (!basePointsPr.containsKey("p" + price.producer)) {
-//                    basePointsPr.put("p" + price.producer, new Vertex(price.producer));
-//                }
-//
-//                basePointsCon.get("c" + price.consumer).addVertex(basePointsPr.get("p" + price.producer));
-//                basePointsPr.get("p" + price.producer).addVertex(basePointsCon.get("c" + price.consumer));
-//                basePointsCount++;
-//            }
-//            index++;
-//        }
+        Map<String, Vertex> basePointsPr = new HashMap<>();
+        Map<String, Vertex> basePointsCon = new HashMap<>();
+        Set<Price> basePoints = new HashSet<>();
+
+        int basePointsCount = 0;
+        int emptyStockCount = 0;
+        int index = 0;
+        while (emptyStockCount < (C + P)) {
+            int max = 0;
+            Price price = new Price(0,0,0);
+            for (Price p:zeros
+                 ) {
+                int innerMax = 0;
+                if (consumersMap.get(p.consumer).get(-2).index < 2){
+                    innerMax += consumersMap.get(p.consumer).get(-3).index;
+                }
+                if (producersMap.get(p.consumer).get(-2).index < 2){
+                    innerMax += producersMap.get(p.consumer).get(-3).index;
+                }
+                if (innerMax > max){
+                    price = p;
+                }
+            }
+            if ((consumers[price.consumer] != 0) && (producers[price.producer] != 0)) {
+                int basePointValue = min(consumers[price.consumer], producers[price.producer]);
+                producers[price.producer] -= basePointValue;
+                consumers[price.consumer] -= basePointValue;
+                if (producers[price.producer] == 0) {
+                    emptyStockCount++;
+                    service.zeroAndMinCheck(consumersMap,producersMap.get(price.producer));
+                    producersMap.remove(price.producer);
+                }
+
+                if (consumers[price.consumer] == 0) {
+                    emptyStockCount++;
+                    service.zeroAndMinCheck(producersMap,consumersMap.get(price.consumer));
+                    consumersMap.remove(price.consumer);
+                }
+
+
+                basePoints.add(new Price(basePointValue, price.consumer, price.producer));
+
+                if (!basePointsCon.containsKey("c" + price.consumer)) {
+                    basePointsCon.put("c" + price.consumer, new Vertex(price.consumer));
+                }
+
+                if (!basePointsPr.containsKey("p" + price.producer)) {
+                    basePointsPr.put("p" + price.producer, new Vertex(price.producer));
+                }
+
+                basePointsCon.get("c" + price.consumer).addVertex(basePointsPr.get("p" + price.producer));
+                basePointsPr.get("p" + price.producer).addVertex(basePointsCon.get("c" + price.consumer));
+                basePointsCount++;
+            }
+            index++;
+        }
 //
 //        for (Vertex v : basePointsPr.values()) {
 //            if (v.hasGraph()) {
