@@ -61,20 +61,19 @@ public class Service {
         for (Map.Entry<Integer, Hand> entry : map.entrySet()) {
             Integer key = entry.getKey();
             Hand value = entry.getValue();
-            if (key < 0 || !bigMap.containsKey(key)) {
+            if (key < 0) {
                 continue;
             }
+            bigMap.get(key).remove(index);
             if (value.index == 0) {
                 bigMap.get(key).get(-2).index--;
                 if (bigMap.get(key).get(-2).index == 0) {
-                    bigMap.get(key).remove(index);
                     for (Integer in : improve(bigMap.get(key))) {
                         newZeros.add(new Price(key, in, reverse));
                     }
                 }
             }
             if (value.index.equals(bigMap.get(key).get(-3).index)) {
-                bigMap.get(key).remove(index);
                 bigMap.get(key).get(-3).index = minimum(bigMap.get(key)).min2;
             }
         }
@@ -104,9 +103,6 @@ public class Service {
                 if (price.index == 0) {
                     zeroCount++;
                 }
-                if (zeroCount == 2) {
-                    min.min2 = 0;
-                }
 
                 if (price.index < min.min) {
                     min.min = price.index;
@@ -117,9 +113,70 @@ public class Service {
 
             }
         }
-        if (min.min2 == Integer.MAX_VALUE) {
+        if (min.min2 == Integer.MAX_VALUE  || zeroCount == 2) {
             min.min2 = 0;
         }
         return min;
+    }
+
+    public HashSet<Price> remove(Map<Integer, Hand> cMap, Integer cIndex, boolean reverse, Price price) {
+        HashSet<Price> newZeros = new HashSet<>();
+        System.out.println("PRICE:  " + price.consumer + "  " + price.producer + "  " + price.cost);
+        Integer cValue = cMap.get(cIndex).index;
+        cMap.remove(cIndex);
+        if (cValue == 0) {
+            cMap.get(-2).index--;
+            if (cMap.get(-2).index == 0) {
+                for (Integer in : improve(cMap)) {
+                    newZeros.add(new Price(cIndex, in, reverse));
+                }
+            }
+        }
+        if (cValue.equals(cMap.get(-3).index)) {
+            cMap.get(-3).index = minimum(cMap).min2;
+        }
+        return newZeros;
+    }
+
+    public Price zeroCompare(Set<Price> zeros, Map<Integer, Map<Integer, Hand>> consumersMap,
+                             Map<Integer, Map<Integer, Hand>> producersMap) {
+        Set<Price> badZeros = new HashSet<>();
+        int max = -1;
+        Price price = new Price(-1, 0, 0);
+        for (Price p : zeros
+                ) {
+            int innerMax = 0;
+            if (!consumersMap.containsKey(p.consumer) || !producersMap.containsKey(p.producer) ||
+                    !consumersMap.get(p.consumer).containsKey(p.producer) ||
+                    !producersMap.get(p.producer).containsKey(p.consumer)) {
+                badZeros.add(p);
+                continue;
+            }
+            if (consumersMap.get(p.consumer).get(-2).index < 2) {
+                innerMax += consumersMap.get(p.consumer).get(-3).index;
+            }
+            if (producersMap.get(p.producer).get(-2).index < 2) {
+                innerMax += producersMap.get(p.producer).get(-3).index;
+            }
+            if (innerMax > max) {
+                max = innerMax;
+                price = p;
+            }
+        }
+        zeros.removeAll(badZeros);
+        zeros.remove(price);
+        return price;
+    }
+
+    public Map<Integer, Map<Integer, Hand>> copy(Map<Integer, Map<Integer, Hand>> map) {
+        Map<Integer, Map<Integer, Hand>> newMap = new HashMap<>();
+        for (Map.Entry<Integer, Map<Integer, Hand>> entry : map.entrySet()) {
+            Map<Integer, Hand> innerMap = new HashMap<>();
+            newMap.put(entry.getKey(), innerMap);
+            for (Map.Entry<Integer, Hand> e : entry.getValue().entrySet()) {
+                innerMap.put(e.getKey(), new Hand(e.getValue().stat, e.getValue().index));
+            }
+        }
+        return newMap;
     }
 }
