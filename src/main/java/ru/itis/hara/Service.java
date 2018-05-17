@@ -4,6 +4,9 @@ import java.util.*;
 
 public class Service {
 
+    public Map<Integer, Map<Integer, Hand>> consumersMap = new HashMap<>();
+    public Map<Integer, Map<Integer, Hand>> producersMap = new HashMap<>();
+
     public void search(Vertex v, Vertex previousVertex) {
         v.graph.producers.add(v);
         for (Vertex consumerVertex : v.vertices) {
@@ -22,8 +25,17 @@ public class Service {
         }
     }
 
-    public HashSet<Integer> improve(Map<Integer, Hand> map) {
+    public HashSet<Integer> improve(Integer pIndex, boolean consumer) {
         HashSet<Integer> newZeros = new HashSet<>();
+        Map<Integer, Hand> map;
+        Map<Integer, Map<Integer, Hand>> bigMap;
+        if (consumer){
+            map = consumersMap.get(pIndex);
+            bigMap = producersMap;
+        }else{
+            map = producersMap.get(pIndex);
+            bigMap = consumersMap;
+        }
         if (map.get(-2).index != 0) {
             return newZeros;
         }
@@ -39,8 +51,16 @@ public class Service {
             }
             value.index = value.index - min;
             if (value.index == 0) {
+                bigMap.get(key).get(-2).index++;
+                if (bigMap.get(key).get(-2).index > 1){
+                    bigMap.get(key).get(-3).index = 0;
+                }
                 zeroCount++;
                 newZeros.add(key);
+            }
+            if (bigMap.get(key).get(-3).index > value.index
+                    && value.index > 0  ){
+                bigMap.get(key).get(-3).index = value.index;
             }
         }
 
@@ -68,7 +88,7 @@ public class Service {
             if (value.index == 0) {
                 bigMap.get(key).get(-2).index--;
                 if (bigMap.get(key).get(-2).index == 0) {
-                    for (Integer in : improve(bigMap.get(key))) {
+                    for (Integer in : improve(key, !reverse)) {
                         newZeros.add(new Price(key, in, reverse));
                     }
                 }
@@ -81,8 +101,7 @@ public class Service {
     }
 
 
-    public void firstImprove(Map<Integer, Map<Integer, Hand>> consumersMap, Integer couCount,
-                             Map<Integer, Map<Integer, Hand>> producersMap, Integer prodCount) {
+    public void firstImprove(Integer couCount, Integer prodCount) {
         for (int i = 0; i < couCount; i++) {
             consumersMap.get(i).get(-3).index = minimum(consumersMap.get(i)).min2;
         }
@@ -119,20 +138,22 @@ public class Service {
         return min;
     }
 
-    public HashSet<Price> remove(Map<Integer, Hand> cMap, Integer cIndex, boolean reverse, Price price) {
+    public HashSet<Price> remove(Map<Integer, Hand> cMap, Integer pIndex, Integer cIndex, boolean consumer) {
         HashSet<Price> newZeros = new HashSet<>();
-        System.out.println("PRICE:  " + price.consumer + "  " + price.producer + "  " + price.cost);
-        Integer cValue = cMap.get(cIndex).index;
-        cMap.remove(cIndex);
+//        if(!cMap.containsKey(cIndex)){
+//            return newZeros;
+//        }
+        Integer cValue = cMap.get(pIndex).index;
+        cMap.remove(pIndex);
         if (cValue == 0) {
             cMap.get(-2).index--;
             if (cMap.get(-2).index == 0) {
-                for (Integer in : improve(cMap)) {
-                    newZeros.add(new Price(cIndex, in, reverse));
+                for (Integer in : improve(cIndex, consumer)) {
+                    newZeros.add(new Price(cIndex, in, !consumer));
                 }
             }
         }
-        if (cValue.equals(cMap.get(-3).index)) {
+        if (cValue - cMap.get(-3).index == 0) {
             cMap.get(-3).index = minimum(cMap).min2;
         }
         return newZeros;
@@ -142,7 +163,7 @@ public class Service {
                              Map<Integer, Map<Integer, Hand>> producersMap) {
         Set<Price> badZeros = new HashSet<>();
         int max = -1;
-        Price price = new Price(-1, 0, 0);
+        Price price = new Price(-5, -5, -5);
         for (Price p : zeros
                 ) {
             int innerMax = 0;
